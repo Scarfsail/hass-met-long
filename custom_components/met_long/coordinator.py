@@ -1,13 +1,10 @@
 """DataUpdateCoordinator for Met.no integration."""
 
-from __future__ import annotations
-
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import timedelta
 import logging
 from random import randrange
-from types import MappingProxyType
-from typing import Any, Self
+from typing import Any, Self, override
 
 import metno
 
@@ -15,6 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ELEVATION,
     CONF_LATITUDE,
+    CONF_LOCATION,
     CONF_LONGITUDE,
     EVENT_CORE_CONFIG_UPDATE,
 )
@@ -41,7 +39,7 @@ class CannotConnect(HomeAssistantError):
 class MetWeatherData:
     """Keep data for Met.no weather entities."""
 
-    def __init__(self, hass: HomeAssistant, config: MappingProxyType[str, Any]) -> None:
+    def __init__(self, hass: HomeAssistant, config: Mapping[str, Any]) -> None:
         """Initialise the weather entity data."""
         self.hass = hass
         self._config = config
@@ -58,8 +56,8 @@ class MetWeatherData:
             longitude = self.hass.config.longitude
             elevation = self.hass.config.elevation
         else:
-            latitude = self._config[CONF_LATITUDE]
-            longitude = self._config[CONF_LONGITUDE]
+            latitude = self._config[CONF_LOCATION][CONF_LATITUDE]
+            longitude = self._config[CONF_LOCATION][CONF_LONGITUDE]
             elevation = self._config[CONF_ELEVATION]
 
         coordinates = {
@@ -113,12 +111,17 @@ class MetDataUpdateCoordinator(DataUpdateCoordinator[MetWeatherData]):
             update_interval=update_interval,
         )
 
+    @override
     async def _async_update_data(self) -> MetWeatherData:
         """Fetch data from Met."""
         try:
             return await self.weather.fetch_data()
-        except Exception as err:
-            raise UpdateFailed(f"Update failed: {err}") from err
+        except CannotConnect as err:
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
 
     def track_home(self) -> None:
         """Start tracking changes to HA home setting."""

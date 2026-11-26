@@ -1,0 +1,39 @@
+{
+  "config": {
+    "abort": {
+      "no_home": "No home coordinates are set in the Home Assistant configuration"
+    },
+    "error": {
+      "already_configured": "Service is already configured"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "elevation": "Elevation",
+          "location": "Location"
+        },
+        "description": "Meteorologisk institutt",
+        "title": "Location"
+      }
+    }
+  },
+  "exceptions": {
+    "no_home_location": {
+      "message": "No home location has been set"
+    },
+    "update_failed": {
+      "message": "Update of data from the web site failed: {error}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "elevation": "Elevation",
+          "location": "Location"
+        },
+        "title": "Location"
+      }
+    }
+  }
+}
